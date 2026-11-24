@@ -1,0 +1,19 @@
+[package]
+name = "openxplore"
+version = "0.1.0"
+edition = "2024"
+description = "Read and write Xbox 360 FATX drives"
+license = "GPL-3.0-only"
+
+[dependencies]
+anyhow = "1.0.105"
+clap = { version = "4.6.9", features = ["derive"] }
+fuser = "0.19.0"
+libc = "0.2.191"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

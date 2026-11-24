@@ -1,0 +1,25 @@
+pkgname=openxplore
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Read, write and mount Xbox 360 FATX drives and images'
+arch=(x86_64)
+license=(GPL-3.0-only)
+depends=(fuse3 gcc-libs glibc)
+makedepends=(cargo)
+options=(!debug)
+
+build() {
+  cd "$startdir/.."
+  cargo build --release --locked --target-dir "$srcdir/target"
+}
+
+check() {
+  cd "$startdir/.."
+  cargo test --release --locked --target-dir "$srcdir/target"
+}
+
+package() {
+  cd "$startdir/.."
+  install -Dm755 "$srcdir/target/release/openxplore" -t "$pkgdir/usr/bin"
+  install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+}

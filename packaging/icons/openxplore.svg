@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <title>OpenXplore</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b2f36"/>
+      <stop offset="1" stop-color="#16181c"/>
+    </linearGradient>
+    <linearGradient id="platter" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ee65a"/>
+      <stop offset="1" stop-color="#2e9a3a"/>
+    </linearGradient>
+  </defs>
+  <!-- drive body -->
+  <rect x="8" y="8" width="112" height="112" rx="22" fill="url(#bg)"/>
+  <!-- platter with data tracks -->
+  <circle cx="58" cy="60" r="40" fill="url(#platter)"/>
+  <circle cx="58" cy="60" r="30" fill="none" stroke="#16181c" stroke-opacity=".25" stroke-width="2"/>
+  <circle cx="58" cy="60" r="20" fill="none" stroke="#16181c" stroke-opacity=".25" stroke-width="2"/>
+  <!-- open spindle -->
+  <circle cx="58" cy="60" r="9" fill="#16181c"/>
+  <circle cx="58" cy="60" r="3.5" fill="#8ee65a"/>
+  <!-- read arm, tip on the outer track -->
+  <path d="M104 100 L74 46" stroke="#e8ecef" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="104" cy="100" r="8" fill="#e8ecef"/>
+  <circle cx="104" cy="100" r="3" fill="#16181c"/>
+</svg>
