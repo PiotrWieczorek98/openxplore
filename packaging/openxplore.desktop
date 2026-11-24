@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=OpenXplore
+GenericName=Xbox 360 Drive Manager
+Comment=Open a connected Xbox 360 hard drive in your file manager
+Exec=openxplore
+Icon=openxplore
+Terminal=false
+Categories=System;FileTools;
+Keywords=xbox;360;fatx;drive;hdd;

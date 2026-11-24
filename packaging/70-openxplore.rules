@@ -1,0 +1,4 @@
+# Give the user logged in at the desktop access to Xbox 360 drives, the way USB sticks
+# get it, so OpenXplore works without sudo. A disk qualifies only if it has no partition
+# table and `openxplore partitions` finds Xbox 360 partitions on it.
+ACTION=="add|change", SUBSYSTEM=="block", ENV{DEVTYPE}=="disk", KERNEL=="sd*", ENV{ID_PART_TABLE_TYPE}=="", PROGRAM="/usr/bin/openxplore $devnode partitions", TAG+="uaccess"

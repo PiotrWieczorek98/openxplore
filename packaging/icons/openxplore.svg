@@ -1,26 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <title>OpenXplore</title>
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2b2f36"/>
-      <stop offset="1" stop-color="#16181c"/>
-    </linearGradient>
-    <linearGradient id="platter" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#8ee65a"/>
-      <stop offset="1" stop-color="#2e9a3a"/>
-    </linearGradient>
-  </defs>
-  <!-- drive body -->
-  <rect x="8" y="8" width="112" height="112" rx="22" fill="url(#bg)"/>
-  <!-- platter with data tracks -->
-  <circle cx="58" cy="60" r="40" fill="url(#platter)"/>
-  <circle cx="58" cy="60" r="30" fill="none" stroke="#16181c" stroke-opacity=".25" stroke-width="2"/>
-  <circle cx="58" cy="60" r="20" fill="none" stroke="#16181c" stroke-opacity=".25" stroke-width="2"/>
-  <!-- open spindle -->
-  <circle cx="58" cy="60" r="9" fill="#16181c"/>
-  <circle cx="58" cy="60" r="3.5" fill="#8ee65a"/>
-  <!-- read arm, tip on the outer track -->
-  <path d="M104 100 L74 46" stroke="#e8ecef" stroke-width="7" stroke-linecap="round"/>
-  <circle cx="104" cy="100" r="8" fill="#e8ecef"/>
-  <circle cx="104" cy="100" r="3" fill="#16181c"/>
-</svg>
+  <!-- A 2.5" drive seen from above, with an X across its platter --><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b2f36"/><stop offset="1" stop-color="#16181c"/></linearGradient>
+<linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ee65a"/><stop offset="1" stop-color="#2e9a3a"/></linearGradient>
+</defs><rect x="8" y="8" width="112" height="112" rx="22" fill="url(#bg)"/>
+<rect x="26" y="16" width="76" height="96" rx="8" fill="#3a3f47"/>
+<circle cx="33" cy="23" r="2.5" fill="#16181c"/><circle cx="95" cy="23" r="2.5" fill="#16181c"/>
+<circle cx="33" cy="105" r="2.5" fill="#16181c"/><circle cx="95" cy="105" r="2.5" fill="#16181c"/>
+<circle cx="64" cy="56" r="28" fill="url(#g)"/>
+<path d="M48 40 L80 72 M80 40 L48 72" stroke="#1d2025" stroke-width="7" stroke-linecap="round"/>
+<rect x="42" y="94" width="44" height="8" rx="2" fill="#16181c"/>
+<path d="M46 96 v4 M52 96 v4 M58 96 v4 M64 96 v4 M70 96 v4 M76 96 v4 M82 96 v4" stroke="#8ee65a" stroke-opacity=".6" stroke-width="2"/></svg>

@@ -7,3 +7,4 @@
 # drive images and backups
 *.img
 *.bin
+/scripts

@@ -9,10 +9,11 @@ license = "GPL-3.0-only"
 anyhow = "1.0.105"
 clap = { version = "4.6.9", features = ["derive"] }
 fuser = "0.19.0"
+ksni = { version = "0.3.7", default-features = false, features = ["blocking", "async-io"] }
 libc = "0.2.191"
 
 [profile.release]
-opt-level = "s"
+opt-level = "z"
 lto = true
 codegen-units = 1
 panic = "abort"

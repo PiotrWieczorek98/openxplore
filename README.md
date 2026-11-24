@@ -12,7 +12,7 @@ Connect an Xbox 360 drive to your PC (a USB-to-SATA adapter works), then browse 
 games and saves off it, or copy new content onto it.
 
 - Lists, copies off, copies on, creates and deletes files and folders
-- Mounts a partition read-only so you can browse it in a file manager
+- Mounts the drive as a normal folder, so you can drag and drop files in Dolphin or any file manager
 - Works on the drive itself or on a disk image made with `dd`
 - Tested on a retail 500 GB drive: game data read and written back byte-for-byte
 
@@ -41,28 +41,55 @@ sudo install -Dm755 target/release/openxplore -t /usr/local/bin
 
 ## Usage
 
-Find your drive with `lsblk` (it has no Linux partitions, e.g. `/dev/sdb`). Accessing a
-device needs root.
+### The easy way
+
+1. Connect the drive (a USB-to-SATA adapter works).
+2. Start **OpenXplore** from your application menu.
+3. Your file manager opens the drive at `~/Xbox360`. Copy files as usual.
+4. When you are done, right-click the OpenXplore icon in the system tray, choose
+   **Safely remove**, and unplug the drive once the notification says so.
+
+Left-clicking the tray icon reopens the folder. On GNOME, the tray icon needs the
+AppIndicator extension.
+
+To open the drive somewhere else, edit `~/.config/openxplore/config.ini` (also under
+**Open config** in the tray menu). It is created on first start:
+
+```ini
+[mount]
+path = ~/Xbox360
+```
+
+The folder must be empty or not exist yet. Changes apply the next time you start OpenXplore.
+
+### Command line
+
+Use `auto` to find the drive, or give its device (e.g. `/dev/sdb`, see `lsblk`).
 
 ```sh
-sudo openxplore /dev/sdb partitions               # find FATX partitions
-sudo openxplore /dev/sdb ls /Content/0000000000000000
-sudo openxplore /dev/sdb get /Content ./backup    # copy off the drive
-sudo openxplore /dev/sdb put ./4D5309D6 /Content/0000000000000000
-sudo openxplore /dev/sdb mkdir /Games
-sudo openxplore /dev/sdb rm /Games                # removes contents too
-sudo openxplore /dev/sdb mount ~/xbox             # read-only; fusermount3 -u ~/xbox
-sudo openxplore -p compat /dev/sdb ls /           # other partition (default: data)
+openxplore auto partitions                   # find FATX partitions
+openxplore auto ls /Content/0000000000000000
+openxplore auto get /Content ./backup        # copy off the drive
+openxplore auto put ./4D5309D6 /Content/0000000000000000
+openxplore auto mkdir /Games
+openxplore auto rm /Games                    # removes contents too
+openxplore auto mount ~/xbox                 # Ctrl+C to unmount
+openxplore -p compat /dev/sdb ls /           # other partition (default: data)
 ```
+
+The package installs a udev rule that gives you access to Xbox 360 drives, so no `sudo` is
+needed. If the drive was already connected while you installed, unplug it and plug it back in.
+Without the package, prefix commands with `sudo`; the app menu entry asks for your password
+instead.
 
 > [!WARNING]
 > Back up the drive before writing to it:
-> `sudo dd if=/dev/sdb of=xbox360.img bs=4M status=progress`
+> `dd if=/dev/sdb of=xbox360.img bs=4M status=progress`
 
 ## Limitations
 
 - Retail drive layout only; dev kit drives and Xbox 360-formatted USB sticks are not supported
-- The mount is read-only; use `put`, `mkdir` and `rm` to write
+- Names are limited to 42 characters, so copying a file with a long name fails
 - Files are limited to 4 GiB, as on the console
 - Cannot format a drive
 

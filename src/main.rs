@@ -1,4 +1,7 @@
+//! OpenXplore: read, write and mount Xbox 360 (FATX) drives. With arguments it is a CLI;
+//! without, it starts the desktop mode in gui.rs.
 mod fatx;
+mod gui;
 mod mount;
 
 use anyhow::{bail, Context, Result};
@@ -7,15 +10,16 @@ use std::fs::{File, OpenOptions};
 use std::path::{Path, PathBuf};
 
 /// Read/write Xbox 360 FATX drives and partition images.
+/// Run without arguments for the graphical mode.
 #[derive(Parser)]
 struct Cli {
-    /// Block device (e.g. /dev/sdb) or image file
-    device: PathBuf,
+    /// Block device (e.g. /dev/sdb), image file, or "auto" to find a connected Xbox 360 drive
+    device: Option<PathBuf>,
     /// Partition name (see `partitions`); defaults to "data", or the image itself
     #[arg(short, long)]
     partition: Option<String>,
     #[command(subcommand)]
-    cmd: Cmd,
+    cmd: Option<Cmd>,
 }
 
 #[derive(Subcommand)]
@@ -32,16 +36,33 @@ enum Cmd {
     Mkdir { path: String },
     /// Delete a file or directory (recursively)
     Rm { path: String },
-    /// Mount read-only via FUSE
-    Mount { mountpoint: PathBuf },
+    /// Mount read-write via FUSE (browse and copy with any file manager)
+    Mount {
+        mountpoint: PathBuf,
+        /// Take unmount requests on stdin and report on stdout (used by the graphical mode)
+        #[arg(long, hide = true)]
+        control: bool,
+    },
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
-    let writes = matches!(cli.cmd, Cmd::Put { .. } | Cmd::Mkdir { .. } | Cmd::Rm { .. });
-    let dev = OpenOptions::new().read(true).write(writes).open(&cli.device).with_context(|| format!("opening {}", cli.device.display()))?;
+    let (Some(device), Some(cmd)) = (cli.device, cli.cmd) else {
+        if std::env::args().len() > 1 {
+            bail!("missing command; see --help");
+        }
+        return gui::run();
+    };
+    // mount needs write access too: the mount is read-write
+    let writes = matches!(cmd, Cmd::Put { .. } | Cmd::Mkdir { .. } | Cmd::Rm { .. } | Cmd::Mount { .. });
+    let device = if device.as_os_str() == "auto" { find_drive()? } else { device };
+    let dev = OpenOptions::new().read(true).write(writes).open(&device).with_context(|| format!("opening {}", device.display()))?;
     let parts = fatx::find_partitions(&dev)?;
-    if let Cmd::Partitions = cli.cmd {
+    if let Cmd::Partitions = cmd {
+        // exit status doubles as the udev probe in packaging/70-openxplore.rules
+        if parts.is_empty() {
+            bail!("no Xbox 360 partitions found on {}", device.display());
+        }
         for (name, off, len) in &parts {
             println!("{name:<10} offset {off:#014x}  size {:>8} MiB", len >> 20);
         }
@@ -53,7 +74,7 @@ fn main() -> Result<()> {
     };
     let mut vol = fatx::Volume::open(dev, off, len)?;
 
-    match cli.cmd {
+    match cmd {
         Cmd::Partitions => unreachable!(),
         Cmd::Ls { path } => {
             let e = vol.lookup(&path)?;
@@ -62,7 +83,7 @@ fn main() -> Result<()> {
                 println!("{} {:>12} {y}-{m:02}-{d:02} {}{}", if c.is_dir() { 'd' } else { '-' }, c.size, c.name, if c.is_dir() { "/" } else { "" });
             }
             let (used, total) = vol.usage();
-            eprintln!("{} / {} MiB used", used * vol.cluster_size >> 20, total * vol.cluster_size >> 20);
+            eprintln!("{} / {} MiB used", (used * vol.cluster_size) >> 20, (total * vol.cluster_size) >> 20);
         }
         Cmd::Get { src, dest } => get(&vol, &vol.lookup(&src)?, &dest)?,
         Cmd::Put { src, dest } => {
@@ -79,9 +100,24 @@ fn main() -> Result<()> {
             let dir = vol.lookup(parent)?;
             rm(&mut vol, &dir, name)?;
         }
-        Cmd::Mount { mountpoint } => mount::run(vol, &mountpoint)?,
+        Cmd::Mount { mountpoint, control } => mount::run(vol, &mountpoint, control)?,
     }
     Ok(())
+}
+
+/// First whole disk (/dev/sdX) carrying an Xbox 360 data partition. Disks this user cannot
+/// open are skipped, which is how gui.rs tells whether the udev rule granted access.
+pub fn find_drive() -> Result<PathBuf> {
+    let mut disks: Vec<_> = std::fs::read_dir("/sys/block")?
+        .filter_map(|e| e.ok()?.file_name().into_string().ok())
+        .filter(|n| n.starts_with("sd"))
+        .map(|n| PathBuf::from("/dev").join(n))
+        .collect();
+    disks.sort();
+    disks
+        .into_iter()
+        .find(|d| File::open(d).ok().and_then(|f| fatx::find_partitions(&f).ok()).is_some_and(|p| p.iter().any(|p| p.0 == "data")))
+        .context("No Xbox 360 drive found. Connect it and try again.")
 }
 
 fn split(path: &str) -> (&str, &str) {
@@ -90,7 +126,7 @@ fn split(path: &str) -> (&str, &str) {
 }
 
 fn get(vol: &fatx::Volume, e: &fatx::Entry, dest: &Path) -> Result<()> {
-    // into an existing host directory -> keep the source name
+    // Copying into an existing host directory keeps the source name, like `cp`.
     let dest = if dest.is_dir() && !e.name.is_empty() { dest.join(&e.name) } else { dest.to_path_buf() };
     if e.is_dir() {
         std::fs::create_dir_all(&dest)?;
